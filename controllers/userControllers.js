@@ -1,6 +1,8 @@
 import User from '../models/user.model.js';
 import { sendVerificationEmail, generateVerificationToken } from '../utils/emailVerfication.js';
-import { uploadToCloudinary } from '../config/cloudinary.js'; // update path if needed
+import { uploadToCloudinary } from '../config/cloudinary.js'; // update path if 
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 export async function registerUser(req, res) {
   try {
@@ -79,4 +81,90 @@ export async function registerUser(req, res) {
     console.error("Registration error:", error);
     return res.status(500).json({ message: "Error registering user" });
   }
+}
+
+export async function loginUser(req, res) {
+  try {
+    const { email, password } = req.body;
+    
+
+    if (!email || !password) {
+     
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const userToFind = await User.findOne({ email });
+    if (!userToFind) {
+     
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if user is verified
+    if (!userToFind.isEmailVerified) {
+    
+      return res
+        .status(401)
+        .json({ message: "User is not verified. Please verify your email" });
+    }
+
+    // Check if password is correct
+    const isPasswordCorrect = await bcrypt.compare(
+      password,
+      userToFind.password
+    );
+    if (!isPasswordCorrect) {
+      
+      return res.status(401).json({ message: "Incorrect password" });
+    }
+
+    // Authorize user: Create a JWT token using userToFind
+    const payload = { id: userToFind._id, email: userToFind.email };
+    
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+  
+
+    // Set token in cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,  // Always true for HTTPS
+      sameSite: "none",  // Required for cross-origin cookies
+      maxAge: 24 * 60 * 60 * 1000,  // 1 day
+  });
+  
+    
+
+  const loggedInUser = {
+    id: userToFind._id,
+    fullName: userToFind.fullName,
+    email: userToFind.email,
+    phoneNumber: userToFind.phoneNumber,
+    profileImage: userToFind.profileImage,
+    gender: userToFind.gender,
+    dateOfBirth: userToFind.dateOfBirth,
+    role: userToFind.role,
+  };
+  
+
+    
+    return res
+      .status(200)
+      .json({ message: "User logged in successfully", user: loggedInUser });
+  } catch (error) {
+    
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+// Logout user
+
+export function logoutUser(req, res) {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "none",
+  });
+
+  return res.status(200).json({ message: "User logged out successfully" });
 }
