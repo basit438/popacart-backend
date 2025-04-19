@@ -74,9 +74,18 @@ const productSchema = new mongoose.Schema({
     required: true
   },
   reviews: [{
-    userId: mongoose.Schema.Types.ObjectId,
+    userId: { 
+      type: String, 
+      required: true,
+      validate: {
+        validator: function(v) {
+          return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(v);
+        },
+        message: props => `${props.value} is not a valid UUID v4!`
+      }
+    },
     comment: String,
-    rating: Number,
+    rating: { type: Number, required: true, min: 1, max: 5 },
     date: {
       type: Date,
       default: Date.now
