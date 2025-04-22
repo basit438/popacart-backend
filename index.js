@@ -8,6 +8,7 @@ import userRouter from './routes/userRouter.js';
 import productRouter from './routes/productRouter.js';
 import cartRouter from './routes/cartRouter.js';
 import couponRouter from './routes/couponRouter.js';
+import wishlistRouter from './routes/wishlistRouter.js';
 const app = express();
 dotenv.config();
 
@@ -37,6 +38,7 @@ app.use('/api/v1/user', userRouter);
 app.use('/api/v1/product', productRouter);
 app.use('/api/v1/cart', cartRouter); 
 app.use('/api/v1/coupon', couponRouter);
+app.use('/api/v1/wishlist', wishlistRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
