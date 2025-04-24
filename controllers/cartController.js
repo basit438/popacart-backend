@@ -53,17 +53,34 @@ export const addToCart = async (req, res) => {
     if (!cart) {
       cart = new Cart({
         userId,
-        products: products,
+        products: products.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          selectedColor: item.selectedColor || null,
+          selectedSize: item.selectedSize || null
+        })),
       });
     } else {
       // Update quantities for existing products and add new ones
       for (const item of products) {
-        const existingProduct = cart.products.find(p => p.productId.toString() === item.productId);
+        // Check if the same product with the same color and size exists
+        const existingProductIndex = cart.products.findIndex(p => 
+          p.productId.toString() === item.productId && 
+          JSON.stringify(p.selectedColor) === JSON.stringify(item.selectedColor) &&
+          JSON.stringify(p.selectedSize) === JSON.stringify(item.selectedSize)
+        );
 
-        if (existingProduct) {
-          existingProduct.quantity += item.quantity;
+        if (existingProductIndex !== -1) {
+          // Update quantity if the same product with same options exists
+          cart.products[existingProductIndex].quantity += item.quantity;
         } else {
-          cart.products.push(item);
+          // Add as new item with color and size
+          cart.products.push({
+            productId: item.productId,
+            quantity: item.quantity,
+            selectedColor: item.selectedColor || null,
+            selectedSize: item.selectedSize || null
+          });
         }
       }
     }
@@ -194,6 +211,8 @@ export const getCart = async (req, res) => {
         return {
           ...item,
           product: product || null,
+          selectedColor: item.selectedColor || null,
+          selectedSize: item.selectedSize || null,
           subtotal: product ? product.price * item.quantity : 0
         };
       })
