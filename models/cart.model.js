@@ -10,6 +10,14 @@ const product = {
     type: Number,
     required: true,
   },
+  selectedColor: {
+    type: Object,
+    default: null
+  },
+  selectedSize: {
+    type: Object,
+    default: null
+  }
 }
 
 const cartSchema = new mongoose.Schema({

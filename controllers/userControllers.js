@@ -118,7 +118,11 @@ export async function loginUser(req, res) {
     }
 
     // Authorize user: Create a JWT token using userToFind
-    const payload = { id: userToFind._id, email: userToFind.email };
+    const payload = { 
+      id: userToFind._id, 
+      email: userToFind.email,
+      role: userToFind.role // Include the user's role in the token payload
+    };
     
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "1d",

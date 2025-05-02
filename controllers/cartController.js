@@ -67,7 +67,7 @@ export const addToCart = async (req, res) => {
         const existingProductIndex = cart.products.findIndex(p => 
           p.productId.toString() === item.productId && 
           JSON.stringify(p.selectedColor) === JSON.stringify(item.selectedColor) &&
-          JSON.stringify(p.selectedSize) === JSON.stringify(item.selectedSize)
+          p.selectedSize === item.selectedSize
         );
 
         if (existingProductIndex !== -1) {
